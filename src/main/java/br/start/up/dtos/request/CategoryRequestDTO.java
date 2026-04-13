@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class CategoryRequestDTO {
 
@@ -12,4 +14,6 @@ public class CategoryRequestDTO {
     private String name;
 
     private String imageUrl;
+
+    private BigDecimal growthRate;
 }

@@ -55,5 +55,4 @@ public class BusinessRequestDTO implements Serializable {
     @NotNull(message = "O campo não pode ser nulo")
     private Set<String> tips;
 
-    private JsonNode moreData;
 }

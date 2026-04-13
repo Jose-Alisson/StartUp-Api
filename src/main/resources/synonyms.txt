@@ -1,0 +1,118 @@
+doceria, confeitaria, loja de doces, doces
+brigaderia, doces gourmet, doces finos
+padaria, panificadora, padoca
+cafeteria, cafe, coffee shop
+lanchonete, hamburgueria, fast food
+food truck, comida de rua
+marmitaria, comida caseira, quentinha
+restaurante, refeicao, comida
+self service, buffet, comida por quilo
+pizzaria, pizza, delivery pizza
+sorveteria, gelateria, sorvete
+açaiteria, açaí, açaíteria
+bar, pub, boteco
+adega, bebidas, distribuidora de bebidas
+
+eletricista, servico eletrico, instalacao eletrica
+encanador, bombeiro hidraulico, servico hidraulico
+pedreiro, obra, construcao
+pintor, pintura residencial, pintura predial
+marceneiro, carpintaria, moveis sob medida
+serralheiro, metal, portao
+chaveiro, copia de chave, abertura de porta
+dedetizacao, controle de pragas
+limpeza, faxina, diarista
+jardinagem, paisagismo, cuidado de jardim
+
+salão de beleza, cabeleireiro, hair salon
+barbearia, barbeiro
+manicure, pedicure, unhas
+estetica, cuidados com pele, estetica facial
+maquiagem, maquiador
+depilacao, estetica corporal
+spa, relaxamento, bem estar
+
+academia, musculacao, fitness
+personal trainer, treinador
+yoga, pilates
+nutricionista, alimentacao, dieta
+fisioterapia, reabilitacao
+psicologo, terapia, saude mental
+
+loja de roupas, vestuario, moda
+brecho, roupas usadas
+loja de calcados, sapatos
+loja de acessorios, bijuterias
+joalheria, joias
+cosmeticos, perfumaria, maquiagem
+papelaria, material escolar
+livraria, livros
+loja de brinquedos, brinquedos infantis
+
+mercado, mercearia, supermercado
+mini mercado, conveniencia
+hortifruti, frutas, verduras
+acougue, carnes
+peixaria, pescados
+padaria, alimentos frescos
+
+pet shop, loja pet
+clinica veterinaria, veterinario
+banho e tosa, cuidado animal
+
+oficina mecanica, mecanico
+auto center, manutencao automotiva
+carro, automovel
+lava jato, lavagem de carros
+funilaria, pintura automotiva
+auto eletrica, eletrica automotiva
+borracharia, pneus
+
+assistencia tecnica, conserto de computador
+informatica, suporte tecnico
+manutencao de celular, assistencia celular
+desenvolvimento de software, programacao
+criacao de sites, web design
+marketing digital, redes sociais
+
+escola, ensino
+curso, treinamento
+reforco escolar, aulas particulares
+curso tecnico, profissionalizante
+idiomas, escola de ingles
+
+
+advogado, advocacia, juridico
+contador, contabilidade
+consultoria, consultor
+corretor, imoveis, imobiliaria
+engenheiro, engenharia
+arquiteto, arquitetura
+
+materiais de construcao, loja de construcao
+decoracao, design de interiores
+moveis, mobiliario
+eletrodomesticos, loja de eletro
+vidracaria, vidro
+gesso, drywall
+
+
+buffet, festa, eventos
+decoracao de festas
+fotografo, fotografia
+filmagem, video
+cerimonialista, organizacao de eventos
+
+
+transporte, frete
+mudanca, carreto
+motoboy, entrega
+delivery, entregas
+
+turismo, viagens
+hotel, hospedagem
+pousada, acomodacao
+airbnb, aluguel por temporada
+seguranca, vigilancia
+lavanderia, lavagem de roupas
+costureira, conserto de roupas

@@ -1,6 +1,8 @@
 package br.start.up.filters;
 
+import br.start.up.detail.UserAuthLoader;
 import br.start.up.jwt.JwtService;
+import br.start.up.services.AccountService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +21,10 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
-    JwtService service;
+    private JwtService service;
+
+    @Autowired
+    private UserAuthLoader authLoader;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -30,11 +35,10 @@ public class JwtFilter extends OncePerRequestFilter {
                 var token = authorization.substring(7);
 
                 var payload = service.verify(token);
-
-                var authorities = payload.getClaim("authorities").asList(String.class).stream().map(SimpleGrantedAuthority::new).toList();
+                var detail = authLoader.loadUserById(payload.getClaim("id").asLong());
 
                 SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(payload.getSubject(), null, authorities
+                        new UsernamePasswordAuthenticationToken(detail.getPrincipal(), null, detail.getAuthorities().stream().map(SimpleGrantedAuthority::new).toList()
                         ));
 
             }

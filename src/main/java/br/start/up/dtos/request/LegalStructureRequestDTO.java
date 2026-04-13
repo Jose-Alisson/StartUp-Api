@@ -20,5 +20,6 @@ public class LegalStructureRequestDTO {
     @NotNull(message = "O campo não pode ser nulo")
     private String type;
 
+    @NotNull(message = "O campo não pode ser nulo")
     private List<LegalRequestDTO> requirements;
 }

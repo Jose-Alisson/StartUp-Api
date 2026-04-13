@@ -7,8 +7,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,15 +37,13 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 public class ConfigureSecurity {
 
-    @Autowired
-    JwtFilter jwtFilter;
-
     @Bean
-    public DefaultSecurityFilterChain chain(HttpSecurity security) {
+    public DefaultSecurityFilterChain chain(HttpSecurity security, JwtFilter jwtFilter) {
         return security
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
+                        .requestMatchers("/ws", "/ws/**").permitAll()
                         .requestMatchers("/accounts/create").permitAll()
                         .requestMatchers("/accounts/{email}/send-reset-password").permitAll()
                         .requestMatchers("/accounts/{email}/reset-password").permitAll()
@@ -53,6 +53,7 @@ public class ConfigureSecurity {
                         .requestMatchers("/businesses/{id}/").permitAll()
                         .requestMatchers("/categories/").permitAll()
                         .requestMatchers("/categories/{id}/").permitAll()
+                        .requestMatchers("/resources/download/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

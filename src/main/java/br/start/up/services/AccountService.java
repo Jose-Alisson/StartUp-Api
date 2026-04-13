@@ -1,6 +1,8 @@
 package br.start.up.services;
 
+import br.start.up.detail.UserAuthLoader;
 import br.start.up.detail.UserDetail;
+import br.start.up.dtos.cache.AuthCacheDTO;
 import br.start.up.dtos.request.AuthRequestDTO;
 import br.start.up.dtos.request.CreateAccountDTO;
 import br.start.up.dtos.request.UpdateAccountDTO;
@@ -14,23 +16,29 @@ import br.start.up.repository.AccountRepository;
 import br.start.up.repository.AuthorityByRoleRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class AccountService {
+public class AccountService implements UserAuthLoader {
 
     @Autowired
     private AccountRepository repository;
@@ -42,16 +50,7 @@ public class AccountService {
     private BCryptPasswordEncoder encoder;
 
     @Autowired
-    private Authentication authentication;
-
-    @Autowired
-    private AuthenticationManager authManager;
-
-    @Autowired
-    private CodeResetPasswordService codeResetPasswordService;
-
-    @Autowired
-    private JwtService jwtService;
+    private DashboardMetricsService dashboardMetricsService;
 
     private final ModelMapper mapper = new ModelMapper();
 
@@ -68,7 +67,11 @@ public class AccountService {
                 .updateAt(OffsetDateTime.now(ZoneId.of("America/Sao_Paulo")))
                 .build();
 
-        return mapper.map(repository.save(acc), AccountSummaryDTO.class);
+        var created = repository.save(acc);
+
+        dashboardMetricsService.incrementNewUser();
+
+        return mapper.map(created, AccountSummaryDTO.class);
     }
 
     public AccountSummaryDTO update(Long id, UpdateAccountDTO account) {
@@ -84,10 +87,6 @@ public class AccountService {
         return mapper.map(acc, AccountSummaryDTO.class);
     }
 
-    public AccountSummaryDTO read() {
-        return mapper.map(repository.findByEmail((String) authentication.getPrincipal()), AccountSummaryDTO.class);
-    }
-
     public AccountSummaryDTO read(Long id) {
         Account acc_ = repository.findById(id).orElseThrow(() -> notFound(id));
         return mapper.map(acc_, AccountSummaryDTO.class);
@@ -95,27 +94,6 @@ public class AccountService {
 
     public Page<AccountSummaryDTO> readAllByPageable(Pageable pageable) {
         return repository.findAll(pageable).map(a -> mapper.map(a, AccountSummaryDTO.class));
-    }
-
-    public AccountSummaryWithTokenAccessDTO login(AuthRequestDTO auth) {
-
-        var authenticate = authManager.authenticate(new UsernamePasswordAuthenticationToken(auth.getEmail(), auth.getPassword()));
-
-        UserDetail detail = (UserDetail) authenticate.getPrincipal();
-
-        return AccountSummaryWithTokenAccessDTO
-                .builder()
-                .account(mapper.map(detail.getAccount(), AccountSummaryDTO.class))
-                .token(jwtService.generateJwt(detail))
-                .build();
-    }
-
-    public void sendCodeResetPassword(String email) {
-        codeResetPasswordService.setCode(email, codeResetPasswordService.generate());
-    }
-
-    public boolean verifyCodeResetPassword(String email, String code) {
-        return codeResetPasswordService.verifyCode(email, code);
     }
 
     public void resetPassword(String email, String newPassword) {
@@ -132,11 +110,40 @@ public class AccountService {
         repository.save(account.toBuilder().authorities(authorityRepository.findAllByRole("user").stream().map(AuthorityByRole::getAuthority).collect(Collectors.toSet())).build());
     }
 
+    public Page<AccountSummaryDTO> search(String term, Pageable pageable) {
+        if(term.startsWith("email:")){
+            return repository.findAllByEmailContainingIgnoreCase(term.substring(6), pageable).map(a -> mapper.map(a, AccountSummaryDTO.class));
+        }
+        return repository.search(term, pageable).map(a -> mapper.map(a, AccountSummaryDTO.class));
+    }
+
     private ResponseStatusException notFound(Long id) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "The Account by id %d not found".formatted(id));
     }
 
     private ResponseStatusException notFound(String email) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, "The Account by email %s not found".formatted(email));
+    }
+
+    public Long count() {
+        return repository.count();
+    }
+
+    @Cacheable(
+            value = "user-auth-cache",
+            key = "#userId",
+            unless = "#result == null"
+    )
+    @Transactional
+    public AuthCacheDTO loadUserById(Long userId) {
+        var account = repository.findById(userId).orElseThrow(() -> notFound(userId));
+
+        Set<String> authorities = account.getAuthorities();
+        authorities.add(account.getRole());
+
+        return AuthCacheDTO.builder()
+                .id(account.getId())
+                .principal(account.getEmail())
+                .authorities(authorities).build();
     }
 }

@@ -7,6 +7,7 @@ import br.start.up.dtos.request.UpdateAccountDTO;
 import br.start.up.dtos.summary.AccountSummaryDTO;
 import br.start.up.dtos.summary.AccountSummaryWithTokenAccessDTO;
 import br.start.up.services.AccountService;
+import br.start.up.services.AuthService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,19 +27,22 @@ public class AccountController {
     @Autowired
     private AccountService service;
 
+    @Autowired
+    private AuthService authService;
+
     @PostMapping("/login")
     public AccountSummaryWithTokenAccessDTO login(@Valid @RequestBody AuthRequestDTO requestDTO){
-        return service.login(requestDTO);
+        return authService.login(requestDTO);
     }
 
     @PatchMapping("/{email}/send-reset-password")
     public void sendResetPassword(@PathVariable("email") String email){
-        service.sendCodeResetPassword(email);
+        authService.sendCodeResetPassword(email);
     }
 
     @PatchMapping("/{email}/verify-code-reset-password")
     public ResponseEntity<?> verifyCodeResetPassword(@PathVariable("email") String email, @RequestBody Map<String, String> body){
-        var verify = service.verifyCodeResetPassword(email, body.get("code"));
+        var verify = authService.verifyCodeResetPassword(email, body.get("code"));
 
         if(verify){
             return ResponseEntity.ok("");
@@ -48,7 +52,7 @@ public class AccountController {
 
     @PatchMapping("/{email}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable("email") String email, @Valid @RequestBody RequestResetPasswordDTO resetPasswordDTO){
-        if(service.verifyCodeResetPassword(email, resetPasswordDTO.getCode())){
+        if(authService.verifyCodeResetPassword(email, resetPasswordDTO.getCode())){
             service.resetPassword(email, resetPasswordDTO.getPassword());
             return ResponseEntity.ok("");
         }
@@ -60,24 +64,44 @@ public class AccountController {
         return service.create(account);
     }
 
+    @PreAuthorize("hasAnyAuthority('admin', 'manager'")
     @PutMapping("/{id}/update")
-    public AccountSummaryDTO update(Long id,@RequestBody UpdateAccountDTO account){
+    public AccountSummaryDTO update(Long id, @RequestBody UpdateAccountDTO account){
         return service.update(id, account);
     }
 
     @GetMapping("/{id}/")
+    @PreAuthorize("hasAnyAuthority('manager', 'admin')")
     public AccountSummaryDTO read(Long id){
         return service.read(id);
     }
 
     @GetMapping("/me")
     public AccountSummaryDTO readMe(){
-        return service.read();
+        return authService.read();
     }
 
     @GetMapping("/")
-    @PreAuthorize("hasAnyAuthority('admin')")
+    @PreAuthorize("hasAnyAuthority('manager','admin')")
     public Page<AccountSummaryDTO> readAll(Pageable pageable){
         return service.readAllByPageable(pageable);
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('manager', 'admin')")
+    public Page<AccountSummaryDTO> search(
+            @RequestParam(value = "term", required = false) String term,
+            Pageable pageable
+    ){
+        if(term != null && !term.isBlank()) {
+            return service.search(term, pageable);
+        }
+        return service.readAllByPageable(pageable);
+    }
+
+    @GetMapping("/count")
+    @PreAuthorize("hasAnyAuthority('manager', 'admin')")
+    public Long getCount(){
+        return service.count();
     }
 }

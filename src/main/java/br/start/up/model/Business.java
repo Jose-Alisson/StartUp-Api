@@ -1,21 +1,21 @@
 package br.start.up.model;
 
+import br.start.up.dtos.summary.BusinessInflation;
 import br.start.up.enums.RiskLevel;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
-
 import static jakarta.persistence.CascadeType.*;
 
 
@@ -25,6 +25,8 @@ import static jakarta.persistence.CascadeType.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
+@SQLDelete(sql = "UPDATE businesses SET isDeleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Business {
 
     @Id
@@ -42,8 +44,10 @@ public class Business {
 
     private String imageUrl;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal initialInvestment;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal monthlyProfit;
 
     private BigDecimal profitMargin;
@@ -78,4 +82,7 @@ public class Business {
     private OffsetDateTime createAt;
 
     private OffsetDateTime updateAt;
+
+    @Transient
+    private BusinessInflation inflation;
 }

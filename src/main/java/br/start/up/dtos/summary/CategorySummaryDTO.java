@@ -7,4 +7,6 @@ public class CategorySummaryDTO {
     private String name;
 
     private String imageUrl;
+
+    private String affiliationsCount;
 }

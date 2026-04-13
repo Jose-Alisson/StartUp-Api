@@ -1,7 +1,5 @@
 package br.start.up.dtos.summary;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.JoinTable;
 import lombok.Data;
 
 import java.util.List;
@@ -10,6 +8,10 @@ import java.util.List;
 public class ProfileSummaryDTO {
 
     private String username;
+
+    private String cellphone;
+
+    private String imageUrl;
 
     private List<String> favoriteBusinessIds;
 }

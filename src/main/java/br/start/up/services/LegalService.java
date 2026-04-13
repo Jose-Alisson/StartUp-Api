@@ -1,6 +1,8 @@
 package br.start.up.services;
 
 import br.start.up.dtos.request.LegalRequestDTO;
+import br.start.up.dtos.request.LegalRequestWithIdDTO;
+import br.start.up.dtos.summary.CategorySummaryDTO;
 import br.start.up.dtos.summary.LegalSummaryDTO;
 import br.start.up.enums.LegalType;
 import br.start.up.model.Legal;
@@ -16,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class LegalService {
@@ -39,7 +43,12 @@ public class LegalService {
         return mapper.map(repository.save(l_), LegalSummaryDTO.class);
     }
 
-    public LegalSummaryDTO update(String idOrName ,LegalRequestDTO legal){
+    public List<LegalSummaryDTO> createAll(List<LegalRequestDTO> legals){
+
+        return legals.stream().map(this::create).toList();
+    }
+
+    public LegalSummaryDTO update(String idOrName, LegalRequestDTO legal){
         Legal l_ = repository.findOne(LegalSpecification.idOrName(idOrName)).orElseThrow(() -> notFound(idOrName));
 
         Legal legal_ = l_.toBuilder()
@@ -53,12 +62,36 @@ public class LegalService {
         return mapper.map(repository.save(legal_), LegalSummaryDTO.class);
     }
 
+    public List<LegalSummaryDTO> updateAll(List<LegalRequestWithIdDTO> legals){
+        List<LegalSummaryDTO> _legals = new ArrayList<>();
+
+        for(LegalRequestWithIdDTO legal: legals){
+            Legal l_ = repository.findOne(LegalSpecification.idOrName(legal.getName())).orElseThrow(() -> notFound(legal.getName()));
+
+            Legal legal_ = l_.toBuilder()
+                    .name(legal.getName())
+                    .type(LegalType.valueOf(legal.getType()))
+                    .description(legal.getDescription())
+                    .mandatory(legal.isMandatory())
+                    .updateAt(OffsetDateTime.now(ZoneId.of("America/Sao_Paulo")))
+                    .build();
+
+            _legals.add(mapper.map(repository.save(legal_), LegalSummaryDTO.class));
+        }
+
+        return _legals;
+    }
+
     public LegalSummaryDTO read(String idOrName){
         return mapper.map(repository.findOne(LegalSpecification.idOrName(idOrName)).orElseThrow(() -> notFound(idOrName)), LegalSummaryDTO.class);
     }
 
     public Page<LegalSummaryDTO> readAll(Pageable pageable){
         return repository.findAll(pageable).map(l -> mapper.map(l, LegalSummaryDTO.class));
+    }
+
+    public Page<LegalSummaryDTO> search(String term, Pageable pageable) {
+        return repository.search(term, pageable).map(q -> mapper.map(q, LegalSummaryDTO.class));
     }
 
     private ResponseStatusException notFound(String id) {

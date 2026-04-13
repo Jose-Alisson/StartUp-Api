@@ -1,9 +1,13 @@
 package br.start.up.services;
 
+import br.start.up.detail.UserAuthLoader;
+import br.start.up.model.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,13 +27,34 @@ public class FileService {
     @Value("${api.path.dir}")
     private String PATH_DIR;
 
-    public String upload(MultipartFile file){
-        if(file.isEmpty()){
+    @Autowired
+    private UserAuthLoader authLoader;
+
+    public String upload(String urlPath, MultipartFile file) {
+        String filename = Paths.get(file.getOriginalFilename())
+                .getFileName()
+                .toString();
+        return upload(urlPath, filename, file);
+    }
+
+    public  String upload(String urlPath, String filename, MultipartFile file){
+        if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The file is empty");
         }
 
-        try{
-            Path path = Path.of(PATH_DIR, file.getOriginalFilename()).normalize().toAbsolutePath();
+        try {
+            Path path = (urlPath == null || urlPath.isBlank())
+                    ? Path.of(PATH_DIR, filename)
+                    : Path.of(PATH_DIR, urlPath, filename);
+
+            path = path.normalize().toAbsolutePath();
+
+            if (!path.startsWith(PATH_DIR)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid path"
+                );
+            }
 
             Files.createDirectories(path.getParent());
 
@@ -37,15 +62,29 @@ public class FileService {
                 Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            return file.getOriginalFilename();
+            return (urlPath == null || urlPath.isBlank())
+                    ? filename
+                    : urlPath + "/" + filename;
+
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error uploading file",
+                    e
+            );
         }
     }
 
     public Resource download(String uri){
         try {
             Path filePath = Paths.get(PATH_DIR).resolve(uri).normalize();
+
+            if (!filePath.startsWith(PATH_DIR)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid path"
+                );
+            }
 
             Resource resource = new UrlResource(filePath.toUri());
 
@@ -57,6 +96,10 @@ public class FileService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public Resource downloadFromPublic(String uri){
+        return download("public/" + uri);
     }
 
     public List<String> listFiles(String uri) {

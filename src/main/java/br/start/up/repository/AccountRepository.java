@@ -22,4 +22,22 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(value = "select * from accounts where date(create_at) between ?1 and ?2", nativeQuery = true)
     List<Account> findAllByDateBetween(String start, String end);
 
+    Page<Account> findAllByEmailContainingIgnoreCase(String email, Pageable pageable);
+
+    @Query(value = """
+    SELECT *
+    FROM accounts
+    WHERE 
+        to_tsvector('portuguese', username) @@ plainto_tsquery('portuguese', :term)
+        OR username ILIKE CONCAT('%', :term, '%')
+""",
+            countQuery = """
+    SELECT COUNT(*)
+    FROM accounts
+    WHERE 
+        to_tsvector('portuguese', username) @@ plainto_tsquery('portuguese', :term)
+        OR username ILIKE CONCAT('%', :term, '%')
+""",
+            nativeQuery = true)
+    Page<Account> search(@Param("term") String term, Pageable pageable);
 }

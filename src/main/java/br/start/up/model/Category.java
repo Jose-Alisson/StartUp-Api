@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Table(name = "categories")
@@ -20,6 +21,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String name;
 
     private String imageUrl;
@@ -27,4 +29,9 @@ public class Category {
     private OffsetDateTime createAt;
 
     private OffsetDateTime updateAt;
+
+    @Column(name = "affiliations_count", nullable = true)
+    private Integer affiliationsCount;
+
+    private BigDecimal growthRate;
 }

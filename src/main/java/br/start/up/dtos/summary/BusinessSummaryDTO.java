@@ -1,5 +1,6 @@
 package br.start.up.dtos.summary;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
@@ -20,8 +21,10 @@ public class BusinessSummaryDTO {
 
     private String imageUrl;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "0.00")
     private BigDecimal initialInvestment;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "0.00")
     private BigDecimal monthlyProfit;
 
     private BigDecimal profitMargin;
@@ -41,4 +44,6 @@ public class BusinessSummaryDTO {
     private boolean visible;
 
     private boolean isDeleted;
+
+    private BusinessInflation inflation;
 }

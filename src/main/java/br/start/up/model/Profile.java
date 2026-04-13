@@ -22,6 +22,10 @@ public class Profile {
 
     private String username;
 
+    private String cellphone;
+
+    private String imageUrl;
+
     @JoinTable(name = "profile_favorite_business")
     @ElementCollection
     private List<String> favoriteBusinessIds;

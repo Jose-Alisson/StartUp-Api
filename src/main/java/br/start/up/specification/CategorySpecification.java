@@ -4,6 +4,8 @@ import br.start.up.model.Business;
 import br.start.up.model.Category;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Locale;
+
 public class CategorySpecification {
 
     public static Specification<Category> idOrName(String term){
@@ -25,9 +27,9 @@ public class CategorySpecification {
             }
 
             // Caso contrário → busca por nome
-            return builder.like(
+            return builder.equal(
                     builder.lower(root.get("name")),
-                    "%" + term.toLowerCase() + "%"
+                    term.toLowerCase(Locale.ROOT)
             );
         };
     }
